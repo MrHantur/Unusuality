@@ -26,7 +26,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:fireflies")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "Светлячки"))
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Светлячки"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -40,7 +40,33 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:confetti")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "Конфетти"))
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Конфетти"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:green_energy")),
+                            builder -> builder
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Зелёная энергия"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:galaxy")),
+                            builder -> builder
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Галактика"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)

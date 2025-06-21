@@ -1,5 +1,5 @@
 name: Unusuality
-version: 1.0-SNAPSHOT
+version: 1.0-SNAPSHOT2
 api-version: 1.21
 bootstrapper: su.mrhantur.UnusualityBootstrapper
 main: su.mrhantur.Unusuality
