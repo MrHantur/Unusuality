@@ -75,6 +75,32 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                                     .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
                                     .activeSlots(EquipmentSlotGroup.ARMOR)
                     );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:restless_souls")),
+                            builder -> builder
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Беспокойные души"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:astral_step")),
+                            builder -> builder
+                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Астральный шаг"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
                 })
         );
     }
