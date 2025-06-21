@@ -47,7 +47,7 @@ public final class Unusuality extends JavaPlugin {
 
             @Override
             public void run() {
-                timer = (timer + 1) % 200;
+                timer = (timer + 1) % 1200;
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     ItemStack helmet = player.getInventory().getHelmet();
@@ -74,6 +74,14 @@ public final class Unusuality extends JavaPlugin {
         register("galaxy", new galaxy());
         register("restless_souls", new restlessSouls());
         register("astral_step", new astralStep());
+        register("stormcloud", new stormcloud());
+        register("memory_leak", new memoryLeak());
+        register("neutron_star", new neutronStar());
+        register("flaming_lantern", new flamingLantern());
+        register("bubbling", new bubbling());
+        register("orbiting_fire", new orbitingFire());
+        register("mountain_halo", new mountainHalo());
+        register("miami_nights", new miamiNights());
     }
 
     private void register(String key, UnusualEffect effect) {
@@ -164,10 +172,11 @@ public final class Unusuality extends JavaPlugin {
         }
     }
 
-
-
     @Override
     public void onDisable() {
-        getLogger().info("Bye bye!");
+        UnusualEffect memory = effects.get(Enchantment.getByKey(NamespacedKey.fromString("unusuality:memory_leak")));
+        if (memory instanceof memoryLeak leak) {
+            leak.clearDisplays();
+        }
     }
 }
