@@ -1,15 +1,26 @@
 package su.mrhantur;
 
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import su.mrhantur.commands.GiveUnusual;
+import su.mrhantur.commands.UnusualChance;
 import su.mrhantur.effects.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
+
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
 
 public final class Unusuality extends JavaPlugin {
 
@@ -22,6 +33,14 @@ public final class Unusuality extends JavaPlugin {
         getLogger().info("[■##] WORKING");
 
         registerEffects();
+        registerCommand(new GiveUnusual(this));
+        registerCommand(new UnusualChance(this));
+        registerCommand(new UnusualChance(this, "uc"));
+        registerCommand(new UnusualChance(this, "гс"));
+
+        getServer().getPluginManager().registerEvents(new AnvilConflictHandler(), this);
+
+        loadChances();
 
         new BukkitRunnable() {
             int timer = 0;
@@ -63,6 +82,89 @@ public final class Unusuality extends JavaPlugin {
             effects.put(enchant, effect);
         }
     }
+
+    private void registerCommand(Command command) {
+        try {
+            var commandMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            commandMapField.setAccessible(true);
+            CommandMap commandMap = (CommandMap) commandMapField.get(Bukkit.getServer());
+            commandMap.register(getDescription().getName(), command);
+        } catch (Exception e) {
+            getLogger().warning("Failed to register command: " + command.getName());
+            e.printStackTrace();
+        }
+    }
+
+    public List<Enchantment> getUnusualEnchantments() {
+        return new ArrayList<>(effects.keySet());
+    }
+
+    public boolean isUnusualEnchantment(Enchantment enchantment) {
+        return effects.containsKey(enchantment);
+    }
+
+    public Enchantment getRandomUnusualEnchantment() {
+        List<Enchantment> list = getUnusualEnchantments();
+        if (list.isEmpty()) return null;
+        return list.get(new Random().nextInt(list.size()));
+    }
+
+    public ItemStack createUnusualBook(Enchantment enchantment) {
+        if (enchantment == null || !isUnusualEnchantment(enchantment)) {
+            throw new IllegalArgumentException("Invalid or unknown unusual enchantment: " + enchantment);
+        }
+
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+        meta.addStoredEnchant(enchantment, 1, true);
+        book.setItemMeta(meta);
+        return book;
+    }
+
+    public ItemStack createRandomUnusualBook() {
+        Enchantment enchant = getRandomUnusualEnchantment();
+        if (enchant == null) return null;
+        return createUnusualBook(enchant);
+    }
+
+    private File chanceFile;
+    private FileConfiguration chanceConfig;
+
+    public double getChance(String playerName) {
+        return chanceConfig.getDouble("players." + playerName, 0.0);
+    }
+
+    public void setChance(String playerName, double value) {
+        chanceConfig.set("players." + playerName, value);
+        saveChances();
+    }
+
+    public void addChance(String playerName, double delta) {
+        setChance(playerName, getChance(playerName) + delta);
+    }
+
+    public void removeChance(String playerName, double delta) {
+        setChance(playerName, getChance(playerName) - delta);
+    }
+
+    private void loadChances() {
+        chanceFile = new File(getDataFolder(), "unusualchance.yml");
+        if (!chanceFile.exists()) {
+            saveResource("unusualchance.yml", false);
+        }
+        chanceConfig = YamlConfiguration.loadConfiguration(chanceFile);
+    }
+
+    private void saveChances() {
+        try {
+            chanceConfig.save(chanceFile);
+        } catch (IOException e) {
+            getLogger().warning("Failed to save unusualchance.yml");
+            e.printStackTrace();
+        }
+    }
+
+
 
     @Override
     public void onDisable() {

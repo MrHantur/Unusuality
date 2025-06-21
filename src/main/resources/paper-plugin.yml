@@ -1,11 +1,15 @@
 name: Unusuality
-version: 1.0-SNAPSHOT3
+version: 1.0
 api-version: 1.21
 bootstrapper: su.mrhantur.UnusualityBootstrapper
 main: su.mrhantur.Unusuality
 description: Unusuality plugin with bootstrapper
 author: MrHantur
-
-dependencies:
-  bootstrap: {}
-  server: {}
+permissions:
+  unusuality.chance:
+    description: "/uc"
+    default: true
+  unusuality.chance.admin:
+    default: op
+  unusuality.giveunusual:
+    default: op
