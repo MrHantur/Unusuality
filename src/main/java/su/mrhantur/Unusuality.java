@@ -1,6 +1,7 @@
 package su.mrhantur;
 
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -47,7 +48,7 @@ public final class Unusuality extends JavaPlugin {
 
             @Override
             public void run() {
-                timer = (timer + 1) % 1200;
+                timer = (timer + 1) % 12000;
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     ItemStack helmet = player.getInventory().getHelmet();
@@ -62,9 +63,21 @@ public final class Unusuality extends JavaPlugin {
                             break;
                         }
                     }
+
+                    if (timer == 0) {
+                        boolean hasNearby = player.getNearbyEntities(50, 50, 50).stream()
+                                .anyMatch(e -> e instanceof Player && !e.equals(player));
+
+                        if (hasNearby && new Random().nextDouble() < 0.8) {
+                            double delta = 0.01 + new Random().nextDouble() * 0.29; // 0.01 до 0.3
+                            String name = player.getName();
+                            addChance(name, delta);
+                        }
+                    }
                 }
             }
         }.runTaskTimer(this, 0L, 1L);
+
     }
 
     private void registerEffects() {
@@ -129,12 +142,6 @@ public final class Unusuality extends JavaPlugin {
         return book;
     }
 
-    public ItemStack createRandomUnusualBook() {
-        Enchantment enchant = getRandomUnusualEnchantment();
-        if (enchant == null) return null;
-        return createUnusualBook(enchant);
-    }
-
     private File chanceFile;
     private FileConfiguration chanceConfig;
 
@@ -162,6 +169,20 @@ public final class Unusuality extends JavaPlugin {
         }
         chanceConfig = YamlConfiguration.loadConfiguration(chanceFile);
     }
+
+    public Map<String, Double> getAllChances() {
+        Map<String, Double> result = new HashMap<>();
+        ConfigurationSection section = chanceConfig.getConfigurationSection("players");
+
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                result.put(key, chanceConfig.getDouble("players." + key));
+            }
+        }
+
+        return result;
+    }
+
 
     private void saveChances() {
         try {
