@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import su.mrhantur.Unusuality;
+import su.mrhantur.gui.MainUnusualGUI;
 
 import java.util.*;
 
@@ -31,9 +32,12 @@ public class UnusualChance extends Command {
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
         if (args.length == 0 && sender instanceof Player player) {
-            double chance = plugin.getChance(player.getName().toLowerCase());
-            sender.sendMessage(ChatColor.LIGHT_PURPLE + "Ваш шанс на зачарование необычного типа: " + String.format(Locale.US, "%.2f", chance) + "%");
+            plugin.getMainUnusualGUI().open(player);
             return true;
+
+            // double chance = plugin.getChance(player.getName().toLowerCase());
+            // sender.sendMessage(ChatColor.LIGHT_PURPLE + "Ваш шанс на зачарование необычного типа: " + String.format(Locale.US, "%.2f", chance) + "%");
+            // return true;
         }
 
         if (args.length == 1 && args[0].equalsIgnoreCase("gamble") && sender instanceof Player player) {
@@ -98,6 +102,10 @@ public class UnusualChance extends Command {
                 }
             }.runTaskTimer(plugin, 0L, 2L); // каждые 2 тика (0.1 сек)
             return true;
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("chance") && sender instanceof Player player) {
+            double chance = plugin.getChance(player.getName().toLowerCase());
+            sender.sendMessage(ChatColor.LIGHT_PURPLE + "Ваш шанс на зачарование необычного типа: " + String.format(Locale.US, "%.2f", chance) + "%");
+            return true;
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("get")) {
@@ -109,7 +117,7 @@ public class UnusualChance extends Command {
                     return true;
                 }
 
-                Map<String, Double> allChances = plugin.getAllChances(); // ты должен реализовать этот метод в Unusuality
+                Map<String, Double> allChances = plugin.getAllChances();
                 if (allChances.isEmpty()) {
                     sender.sendMessage(ChatColor.GRAY + "Нет сохранённых шансов.");
                     return true;
@@ -169,7 +177,7 @@ public class UnusualChance extends Command {
             }
 
             if (sender instanceof Player) {
-                options.add("gamble");
+                options.addAll(List.of("gamble", "chance"));
             }
 
             return options.stream()
@@ -177,7 +185,7 @@ public class UnusualChance extends Command {
                     .toList();
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("get")) {
+        if (args.length == 2 && (args[0].equalsIgnoreCase("get") || (args[0].equalsIgnoreCase("add")) || (args[0].equalsIgnoreCase("remove")))) {
             List<String> names = Bukkit.getOnlinePlayers().stream()
                     .map(Player::getName)
                     .toList();

@@ -6,6 +6,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -17,15 +19,22 @@ import su.mrhantur.effects.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
+import su.mrhantur.gui.MainUnusualGUI;
 
 public final class Unusuality extends JavaPlugin {
 
+    private MainUnusualGUI mainUnusualGUI;
+
     private final Map<Enchantment, UnusualEffect> effects = new HashMap<>();
+
+    private final Map<String, Double> todayGain = new HashMap<>();
+    private static final double DAILY_CHANCE_LIMIT = 5.0; // максимум 5% прироста в день
+    private final Map<String, String> playerIPs = new HashMap<>(); // name -> IP
+    private final Set<String> ipUsedToday = new HashSet<>();       // IPs которые уже получили шанс
 
     @Override
     public void onEnable() {
@@ -38,6 +47,8 @@ public final class Unusuality extends JavaPlugin {
         registerCommand(new UnusualChance(this));
         registerCommand(new UnusualChance(this, "uc"));
         registerCommand(new UnusualChance(this, "гс"));
+
+        mainUnusualGUI = new MainUnusualGUI(this);
 
         getServer().getPluginManager().registerEvents(new AnvilConflictHandler(), this);
 
@@ -64,20 +75,14 @@ public final class Unusuality extends JavaPlugin {
                         }
                     }
 
-                    if (timer == 0) {
-                        boolean hasNearby = player.getNearbyEntities(50, 50, 50).stream()
-                                .anyMatch(e -> e instanceof Player && !e.equals(player));
-
-                        if (hasNearby && new Random().nextDouble() < 0.8) {
-                            double delta = 0.01 + new Random().nextDouble() * 0.29; // 0.01 до 0.3
-                            String name = player.getName();
-                            addChance(name, delta);
-                        }
+                    if (new Random().nextDouble() < ((double) 1 / 24000)) {
+                        double delta = 0.01 + new Random().nextDouble() * 0.29;
+                        String name = player.getName();
+                        addChanceDaily(name, delta);
                     }
                 }
             }
         }.runTaskTimer(this, 0L, 1L);
-
     }
 
     private void registerEffects() {
@@ -114,6 +119,10 @@ public final class Unusuality extends JavaPlugin {
             getLogger().warning("Failed to register command: " + command.getName());
             e.printStackTrace();
         }
+    }
+
+    public MainUnusualGUI getMainUnusualGUI() {
+        return mainUnusualGUI;
     }
 
     public List<Enchantment> getUnusualEnchantments() {
@@ -158,6 +167,23 @@ public final class Unusuality extends JavaPlugin {
         setChance(playerName, getChance(playerName) + delta);
     }
 
+    private void addChanceDaily(String playerName, double delta) {
+        String ip = playerIPs.get(playerName);
+        if (ip == null) return;
+
+        if (ipUsedToday.contains(ip)) return; // уже кто-то с этого IP получил прирост
+
+        double gainedToday = todayGain.getOrDefault(playerName, 0.0);
+        if (gainedToday >= DAILY_CHANCE_LIMIT) return;
+
+        double allowed = Math.min(delta, DAILY_CHANCE_LIMIT - gainedToday);
+        if (allowed <= 0) return;
+
+        setChance(playerName, getChance(playerName) + allowed);
+        todayGain.put(playerName, gainedToday + allowed);
+        ipUsedToday.add(ip); // теперь этот IP считается использованным
+    }
+
     public void removeChance(String playerName, double delta) {
         setChance(playerName, getChance(playerName) - delta);
     }
@@ -183,7 +209,6 @@ public final class Unusuality extends JavaPlugin {
         return result;
     }
 
-
     private void saveChances() {
         try {
             chanceConfig.save(chanceFile);
@@ -191,6 +216,12 @@ public final class Unusuality extends JavaPlugin {
             getLogger().warning("Failed to save unusualchance.yml");
             e.printStackTrace();
         }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        String ip = event.getPlayer().getAddress().getAddress().getHostAddress();
+        playerIPs.put(event.getPlayer().getName(), ip);
     }
 
     @Override
