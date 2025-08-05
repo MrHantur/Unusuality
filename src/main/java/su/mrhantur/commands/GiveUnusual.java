@@ -61,16 +61,7 @@ public class GiveUnusual extends Command {
         ItemStack book = plugin.createUnusualBook(chosen);
         target.getInventory().addItem(book);
 
-        // Снижение шанса на 100%
-        String name = target.getName().toLowerCase();
-        double current = plugin.getChance(name);
-        Bukkit.getLogger().info("chance " + current + " nick: " + name);
-        double newValue = Math.max(0.0, current - 100.0);
-        plugin.setChance(name, newValue);
-
         target.sendMessage(ChatColor.LIGHT_PURPLE + "Вы получили зачарование необычного типа!");
-        target.sendMessage(ChatColor.GRAY + "Ваш шанс теперь равен: " +
-                String.format(Locale.US, "%.2f", newValue) + "%");
 
         sender.sendMessage(ChatColor.GREEN + "Book with " + chosen.getKey().getKey() + " sent to " + target.getName() + "!");
         return true;

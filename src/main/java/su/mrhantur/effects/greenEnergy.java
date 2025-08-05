@@ -3,10 +3,12 @@ package su.mrhantur.effects;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 
 public class greenEnergy implements UnusualEffect {
@@ -24,7 +26,7 @@ public class greenEnergy implements UnusualEffect {
     }
 
     @Override
-    public void apply(Player player, int timer) {
+    public void apply(Entity player, int timer, List<Player> viewers) {
         if (timer % 2 != 0) return;
 
         Location base = player.getLocation().add(0, 2.25, 0);
@@ -44,12 +46,12 @@ public class greenEnergy implements UnusualEffect {
                 Location loc = base.clone().add(xRot * radius, 0, zRot * radius);
                 Particle.DustOptions dust = (i % 2 == 0) ? green : aqua;
 
-                world.spawnParticle(Particle.DUST, loc, 0, 0, 0, 0, dust);
+                for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, loc, 0, 0, 0, 0, dust);
             }
         }
 
         if (timer % 6 == 0) {
-            world.spawnParticle(Particle.DUST, base.clone().add(0, 0.4, 0), 0, 0, 0, 0, (random.nextBoolean() ? green : aqua));
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, base.clone().add(0, 0.4, 0), 0, 0, 0, 0, (random.nextBoolean() ? green : aqua));
         }
     }
 }

@@ -2,17 +2,19 @@ package su.mrhantur.effects;
 
 import org.bukkit.Color;
 import org.bukkit.Particle;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 
 public class confetti implements UnusualEffect {
     private final Random random = new Random();
 
     @Override
-    public void apply(Player player, int timer) {
+    public void apply(Entity player, int timer, List<Player> viewers) {
         if (timer % 8 != 0) return;
 
         var origin = player.getLocation().add(0, 2.4, 0);
@@ -24,7 +26,7 @@ public class confetti implements UnusualEffect {
             Vector offset = new Vector(Math.cos(angle) * speed, 0.05 + random.nextDouble() * 0.15, Math.sin(angle) * speed);
             Color color = Color.fromRGB(100 + random.nextInt(156), 100 + random.nextInt(156), 100 + random.nextInt(156));
 
-            player.getWorld().spawnParticle(
+            for (Player viewer : viewers) viewer.getWorld().spawnParticle(
                     Particle.DUST, origin, 1,
                     offset.getX(), offset.getY(), offset.getZ(), 0,
                     new Particle.DustOptions(color, 1.0f)

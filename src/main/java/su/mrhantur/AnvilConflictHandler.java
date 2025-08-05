@@ -29,7 +29,7 @@ public class AnvilConflictHandler implements Listener {
         boolean rightHasUnusual = hasUnusual(right);
 
         if (leftHasUnusual && rightHasUnusual) {
-            event.setResult(null); // удаляем результат
+            event.setResult(null); // Удаляем результат
         }
     }
 

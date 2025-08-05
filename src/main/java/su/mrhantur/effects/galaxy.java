@@ -3,10 +3,12 @@ package su.mrhantur.effects;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 
 public class galaxy implements UnusualEffect {
@@ -16,7 +18,7 @@ public class galaxy implements UnusualEffect {
     private final Random random = new Random();
 
     @Override
-    public void apply(Player player, int timer) {
+    public void apply(Entity player, int timer, List<Player> viewers) {
         Location base = player.getLocation().add(0, 2.4, 0);
         World world = base.getWorld();
 
@@ -30,7 +32,7 @@ public class galaxy implements UnusualEffect {
             double y = (Math.random() - 0.5) * 0.1;
             Particle.DustOptions dust = (i % 2 == 0) ? nebula1 : nebula2;
 
-            world.spawnParticle(Particle.DUST, base.clone().add(x, y, z), 0, 0, 0, 0, dust);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, base.clone().add(x, y, z), 0, 0, 0, 0, dust);
         }
 
         for (int i = 0; i < 6; i++) {
@@ -39,12 +41,12 @@ public class galaxy implements UnusualEffect {
             double z = Math.sin(angle) * innerRadius * (0.9 + Math.random() * 0.1);
             double y = (Math.random() - 0.5) * 0.07;
 
-            world.spawnParticle(Particle.DUST, base.clone().add(x, y, z), 0, 0, 0, 0, core);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, base.clone().add(x, y, z), 0, 0, 0, 0, core);
         }
 
         if (timer % 6 == 0) {
             for (int i = 0; i < 1 + random.nextInt(2); i++) {
-                world.spawnParticle(
+                for (Player viewer : viewers) viewer.spawnParticle(
                         Particle.END_ROD,
                         base.clone().add((Math.random() - 0.5) * 0.5, (Math.random() - 0.3) * 0.3, (Math.random() - 0.5) * 0.5),
                         0, 0, 0.01, 0
@@ -53,7 +55,7 @@ public class galaxy implements UnusualEffect {
         }
 
         if (timer % 20 == 0) {
-            world.spawnParticle(Particle.PORTAL, base.clone().add(0, 0.1, 0), 4, 0.1, 0.1, 0.1, 0.05);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.PORTAL, base.clone().add(0, 0.1, 0), 4, 0.1, 0.1, 0.1, 0.05);
         }
     }
 }

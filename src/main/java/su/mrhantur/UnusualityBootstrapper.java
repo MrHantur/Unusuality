@@ -26,7 +26,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:fireflies")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Светлячки"))
+                                    .description(Component.text("§3♦ Светлячки"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -40,7 +40,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:confetti")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Конфетти"))
+                                    .description(Component.text("§3♦ Конфетти"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -53,7 +53,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:green_energy")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Зелёная энергия"))
+                                    .description(Component.text("§3♦ Зелёная энергия"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -66,7 +66,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:galaxy")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Галактика"))
+                                    .description(Component.text("§3♦ Галактика"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -79,7 +79,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:restless_souls")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Беспокойные души"))
+                                    .description(Component.text("§3♦ Беспокойные души"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -92,7 +92,7 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:astral_step")),
                             builder -> builder
-                                    .description(Component.text(ChatColor.DARK_PURPLE + "♦ Астральный шаг"))
+                                    .description(Component.text("§3♦ Астральный шаг"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)
@@ -101,6 +101,8 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                                     .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
                                     .activeSlots(EquipmentSlotGroup.ARMOR)
                     );
+
+                    // Серия #2
 
                     event.registry().register(
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:stormcloud")),
@@ -197,6 +199,112 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                             EnchantmentKeys.create(NamespacedKey.fromString("unusuality:miami_nights")),
                             builder -> builder
                                     .description(Component.text(ChatColor.DARK_PURPLE + "♦ Майами"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    // Серия #3
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:carousel")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Карусель"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:tornado")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Смерч"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:rejection")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Отторжение"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:stargazer")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Звездочёт"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:devil_horns")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Дьяволиские рога"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:neon_electricity")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Неоновое электричество"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:radiation")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Радиация"))
+                                    .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
+                                    .maxLevel(1)
+                                    .anvilCost(5)
+                                    .weight(10)
+                                    .minimumCost(EnchantmentRegistryEntry.EnchantmentCost.of(1, 5))
+                                    .maximumCost(EnchantmentRegistryEntry.EnchantmentCost.of(10, 10))
+                                    .activeSlots(EquipmentSlotGroup.ARMOR)
+                    );
+
+                    event.registry().register(
+                            EnchantmentKeys.create(NamespacedKey.fromString("unusuality:blood_pact")),
+                            builder -> builder
+                                    .description(Component.text("§6♦ Кровавый договор"))
                                     .supportedItems(event.getOrCreateTag(ItemTypeTagKeys.HEAD_ARMOR))
                                     .maxLevel(1)
                                     .anvilCost(5)

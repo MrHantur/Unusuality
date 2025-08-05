@@ -4,63 +4,62 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 
 public class miamiNights implements UnusualEffect {
     private final Random random = new Random();
-
-    private final Particle.DustOptions pink = new Particle.DustOptions(Color.fromRGB(255, 105, 180), 0.8f);
-    private final Particle.DustOptions cyan = new Particle.DustOptions(Color.fromRGB(0, 255, 255), 0.8f);
-    private final Particle.DustOptions purple = new Particle.DustOptions(Color.fromRGB(186, 85, 211), 0.8f);
-    private final Particle.DustOptions blue = new Particle.DustOptions(Color.fromRGB(100, 149, 237), 0.8f);
-    private final Particle.DustOptions white = new Particle.DustOptions(Color.fromRGB(255, 255, 255), 1.0f);
-    private final Particle.DustOptions[] colors = new Particle.DustOptions[]{pink, cyan, purple, blue};
+    private final Particle.DustOptions[] colors = {
+            new Particle.DustOptions(Color.fromRGB(255,105,180), 0.8f),
+            new Particle.DustOptions(Color.fromRGB(0,255,255),   0.8f),
+            new Particle.DustOptions(Color.fromRGB(186,85,211),  0.8f),
+            new Particle.DustOptions(Color.fromRGB(100,149,237), 0.8f)
+    };
 
     @Override
-    public void apply(Player player, int timer) {
-        Location origin = player.getLocation().add(0, 1.9, 0);
-        World world = origin.getWorld();
+    public void apply(Entity player, int timer, List<Player> viewers) {
+        Location o = player.getLocation().add(0, 2.2, 0);
+        World w = o.getWorld();
 
-        for (int i = 0; i < 4; i++) {
+        int drops   = 4;      // всего 6 мини-капель
+        double height = 1.0;  // высота потока 1 блок
+        double radius = 0.4;  // узкий радиус
+        double speed  = 0.1;  // быстрая цикличность
+
+        // Мини-дождь
+        for (int i = 0; i < drops; i++) {
+            double cycle = ((timer * speed) + i * 0.5) % height;
+            double yOff  = height - cycle;
+            double angle = i * (2 * Math.PI / drops) + timer * 0.04;
+            double spread = 0.7 + 0.3 * random.nextDouble();
+            double xOff   = Math.cos(angle) * radius * spread;
+            double zOff   = Math.sin(angle) * radius * spread;
             Particle.DustOptions color = colors[i % colors.length];
-            double seed = timer * 0.04 + i * 15;
 
-            double baseYaw = Math.toRadians(90 * i);
-            double yawOffset = Math.sin(seed * 0.3 + i) * Math.toRadians(20);
-            double yaw = baseYaw + yawOffset;
+            Location dropPos = o.clone().add(xOff, yOff, zOff);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, dropPos, 0, 0, -0.02, 0, color);
 
-            // 💡 ОСТРЫЙ угол к горизонту — 45–60°
-            double basePitchDeg = 45 + Math.sin(seed * 0.3 + i) * 7.5; // 37.5° – 52.5°
-            double pitch = Math.toRadians(basePitchDeg);
-
-            double dx = Math.cos(pitch) * Math.cos(yaw);
-            double dy = Math.sin(pitch);
-            double dz = Math.cos(pitch) * Math.sin(yaw);
-
-            Location current = origin.clone();
-
-            for (int j = 0; j < 5; j++) {
-                double wobbleX = Math.sin(seed + j * 0.4) * 0.02;
-                double wobbleZ = Math.cos(seed + j * 0.3) * 0.02;
-                double wobbleY = Math.sin(seed + j * 0.2) * 0.01;
-
-                current = current.add(dx * 0.12 + wobbleX, dy * 0.12 + wobbleY, dz * 0.12 + wobbleZ);
-                world.spawnParticle(Particle.DUST, current, 0, 0, 0, 0, color);
-
-                if (j == 4 && random.nextDouble() < 0.8) {
-                    world.spawnParticle(Particle.DUST, current, 0, 0, 0.01, 0, white);
-                }
+            // лёгкий белый отблеск у поверхности
+            if (yOff < 0.15) {
+                for (Player viewer : viewers) viewer.spawnParticle(
+                        Particle.DUST,
+                        new Location(o.getWorld(), dropPos.getX(), o.getY(), dropPos.getZ()),
+                        2, 0.05, 0, 0.05,
+                        new Particle.DustOptions(Color.WHITE, 1.0f)
+                );
             }
         }
 
-        if (random.nextDouble() < 0.3) {
-            world.spawnParticle(Particle.ELECTRIC_SPARK,
-                    origin.clone().add((random.nextDouble() - 0.5) * 0.5, 0.2, (random.nextDouble() - 0.5) * 0.5),
-                    0, 0, 0.01, 0);
+        // почти без искр — только тонкий разряд раз в секунду
+        if (timer % 20 == 0 && random.nextDouble() < 0.1) {
+            int i = random.nextInt(drops);
+            double ang = i * (2 * Math.PI / drops) + timer * 0.04;
+            Location p = o.clone().add(Math.cos(ang) * radius, 0.6, Math.sin(ang) * radius);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.ELECTRIC_SPARK, p, 0, 0, 0, 0);
         }
     }
-
 }

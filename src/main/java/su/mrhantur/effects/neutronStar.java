@@ -3,10 +3,12 @@ package su.mrhantur.effects;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 
 public class neutronStar implements UnusualEffect {
@@ -15,7 +17,7 @@ public class neutronStar implements UnusualEffect {
     private final Random random = new Random();
 
     @Override
-    public void apply(Player player, int timer) {
+    public void apply(Entity player, int timer, List<Player> viewers) {
         if (timer % 2 == 0) return;
 
         Location center = player.getLocation().add(0, 2.4, 0);
@@ -28,7 +30,7 @@ public class neutronStar implements UnusualEffect {
             double z = Math.sin(angle) * radius;
             double y = (random.nextDouble() - 0.5) * 0.05;
 
-            world.spawnParticle(Particle.DUST, center.clone().add(x, y, z), 0, 0, 0, 0, core);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, center.clone().add(x, y, z), 0, 0, 0, 0, core);
         }
 
         double jetAngle = timer / 5.0;
@@ -39,20 +41,22 @@ public class neutronStar implements UnusualEffect {
             Location jetUp = center.clone().add(dx * i, i * 0.1, dz * i);
             Location jetDown = center.clone().add(-dx * i, -i * 0.1, -dz * i);
 
-            world.spawnParticle(Particle.DUST, jetUp, 0, 0, 0, 0, beam);
-            world.spawnParticle(Particle.DUST, jetDown, 0, 0, 0, 0, beam);
+            for (Player viewer : viewers) {
+                viewer.spawnParticle(Particle.DUST, jetUp, 0, 0, 0, 0, beam);
+                viewer.spawnParticle(Particle.DUST, jetDown, 0, 0, 0, 0, beam);
+            }
         }
 
         if (random.nextDouble() < 0.4) {
-            world.spawnParticle(Particle.ELECTRIC_SPARK, center, 1, 0.1, 0.1, 0.1, 0.01);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.ELECTRIC_SPARK, center, 1, 0.1, 0.1, 0.1, 0.01);
         }
 
-        if (timer % 40 == 0) {
-            world.spawnParticle(Particle.PORTAL, center, 6, 0.3, 0.2, 0.3, 0.05);
+        if (timer % 40 == 1) {
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.PORTAL, center, 6, 0.3, 0.2, 0.3, 0.05);
         }
 
         if (timer % 5 == 0) {
-            world.spawnParticle(Particle.END_ROD, center.clone().add(0, 0.05, 0), 0, 0, 0.01, 0);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.END_ROD, center.clone().add(0, 0.05, 0), 0, 0, 0.01, 0);
         }
     }
 }

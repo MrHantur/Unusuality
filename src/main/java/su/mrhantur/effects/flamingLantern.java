@@ -4,15 +4,17 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
+
 public class flamingLantern implements UnusualEffect {
     private final Particle.DustOptions flameCore = new Particle.DustOptions(Color.fromRGB(255, 80, 20), 1.1f);
-    private final Particle.DustOptions glowEdge = new Particle.DustOptions(Color.fromRGB(255, 140, 60), 0.5f);
 
     @Override
-    public void apply(Player player, int timer) {
+    public void apply(Entity player, int timer, List<Player> viewers) {
         if (timer % 2 == 0) return;
 
         World world = player.getWorld();
@@ -23,7 +25,7 @@ public class flamingLantern implements UnusualEffect {
         Location center = player.getLocation().add(offsetX, offsetY, offsetZ);
 
         // Центральное пламя
-        world.spawnParticle(Particle.DUST, center, 0, 0, 0, 0, flameCore);
+        for (Player viewer : viewers) viewer.spawnParticle(Particle.DUST, center, 0, 0, 0, 0, flameCore);
 
         // Меньше огня вокруг
         for (int i = 0; i < 4; i++) {
@@ -32,7 +34,7 @@ public class flamingLantern implements UnusualEffect {
             double x = Math.cos(angle) * radius;
             double z = Math.sin(angle) * radius;
             double y = Math.sin(angle * 3 + timer / 15.0) * 0.05;
-            world.spawnParticle(Particle.FLAME, center.clone().add(x, y, z), 0, 0, 0.005, 0);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.FLAME, center.clone().add(x, y, z), 0, 0, 0.005, 0);
         }
 
         // Редкие вихри дыма
@@ -40,12 +42,12 @@ public class flamingLantern implements UnusualEffect {
             double angle = Math.random() * 2 * Math.PI;
             double x = Math.cos(angle) * 0.12;
             double z = Math.sin(angle) * 0.12;
-            world.spawnParticle(Particle.SMOKE, center.clone().add(x, 0.05, z), 0, 0, 0.01, 0);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.SMOKE, center.clone().add(x, 0.05, z), 0, 0, 0.01, 0);
         }
 
         // Искра
         if (timer % 24 == 0) {
-            world.spawnParticle(Particle.CRIT, center.clone(), 1, 0.1, 0.1, 0.1, 0.01);
+            for (Player viewer : viewers) viewer.spawnParticle(Particle.CRIT, center.clone(), 1, 0.1, 0.1, 0.1, 0.01);
         }
     }
 }

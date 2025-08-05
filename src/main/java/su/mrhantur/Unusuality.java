@@ -1,10 +1,11 @@
 package su.mrhantur;
 
 import org.bukkit.*;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -16,25 +17,30 @@ import org.bukkit.scheduler.BukkitRunnable;
 import su.mrhantur.commands.GiveUnusual;
 import su.mrhantur.commands.UnusualChance;
 import su.mrhantur.effects.*;
+import su.mrhantur.gui.*;
+import su.mrhantur.series.SeriesManager;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
-
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
-import su.mrhantur.gui.MainUnusualGUI;
 
 public final class Unusuality extends JavaPlugin {
 
-    private MainUnusualGUI mainUnusualGUI;
+    private MainUnusual mainUnusual;
+    private UnusualityDataManager dataManager;
+    private SeriesManager seriesManager;
+    private CaseSelection caseSelection;
+    private Settings settings;
+    private KeyConverter keyConverter;
+    private HelmetExtractor helmetExtractor;
+    private TestEnchantment testEnchantment;
+    private ExchangeGUI exchangeGUI;
 
     private final Map<Enchantment, UnusualEffect> effects = new HashMap<>();
-
     private final Map<String, Double> todayGain = new HashMap<>();
-    private static final double DAILY_CHANCE_LIMIT = 5.0; // максимум 5% прироста в день
-    private final Map<String, String> playerIPs = new HashMap<>(); // name -> IP
-    private final Set<String> ipUsedToday = new HashSet<>();       // IPs которые уже получили шанс
+    private static final double DAILY_CHANCE_LIMIT = 35.0;
+    private final Map<String, String> playerIPs = new HashMap<>();
+    private final Set<String> ipUsedToday = new HashSet<>();
+
+    private final Random random = new Random();
 
     @Override
     public void onEnable() {
@@ -42,47 +48,122 @@ public final class Unusuality extends JavaPlugin {
         getLogger().info("♥♦♣♠ IS ♠♣♦♥");
         getLogger().info("[■##] WORKING");
 
+        // Инициализация dataManager ДО всего остального
+        this.dataManager = new UnusualityDataManager(this);
+
+        // Инициализация новых компонентов
+        this.seriesManager = new SeriesManager(this);
+        CaseOpener caseOpener = new CaseOpener(this);
+        this.caseSelection = new CaseSelection(this, caseOpener);
+        this.settings = new Settings(this);
+        this.keyConverter = new KeyConverter(this);
+        this.helmetExtractor = new HelmetExtractor(this);
+        this.testEnchantment = new TestEnchantment(this);
+        this.exchangeGUI = new ExchangeGUI(this);
+
         registerEffects();
         registerCommand(new GiveUnusual(this));
         registerCommand(new UnusualChance(this));
         registerCommand(new UnusualChance(this, "uc"));
         registerCommand(new UnusualChance(this, "гс"));
+        registerCommand(new UnusualChance(this, "uk"));
+        registerCommand(new UnusualChance(this, "гл"));
 
-        mainUnusualGUI = new MainUnusualGUI(this);
+        mainUnusual = new MainUnusual(this);
 
         getServer().getPluginManager().registerEvents(new AnvilConflictHandler(), this);
-
-        loadChances();
+        getServer().getPluginManager().registerEvents(new su.mrhantur.effects.bloodPactListener(), this);
 
         new BukkitRunnable() {
             int timer = 0;
+            private final Set<ArmorStand> processedStands = new HashSet<>();
 
             @Override
             public void run() {
                 timer = (timer + 1) % 12000;
+                processedStands.clear();
+                // КАКАЯ ЖЕ ЭТО ПОЕБОТА СО СТОЙКАМИ
+                // ЭТО ПИЗДЕЦ КАК НЕПРОИЗВОДИТЕЛЬНО
+                // ЕСЛИ ЧТО НАДО УДАЛИТЬ ЭТО НАХЕР
+
+                // Случайное добавление прогресса
+                if (random.nextDouble() < 0.0001) { // 1/10000
+                    double delta = 0.01 + random.nextDouble() * 4.99;
+                    Bukkit.getOnlinePlayers().forEach(player -> addProgressDaily(player, delta));
+                }
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    ItemStack helmet = player.getInventory().getHelmet();
-                    if (helmet == null || !helmet.hasItemMeta()) continue;
-
-                    ItemMeta meta = helmet.getItemMeta();
-                    if (meta == null) continue;
-
-                    for (Map.Entry<Enchantment, UnusualEffect> entry : effects.entrySet()) {
-                        if (meta.hasEnchant(entry.getKey())) {
-                            entry.getValue().apply(player, timer);
-                            break;
+                    // Обработка эффектов на игроке
+                    if (getDataManager().getShowEffectPlayer(player.getName().toLowerCase())) {
+                        ItemStack helmet = player.getInventory().getHelmet();
+                        if (helmet != null && helmet.hasItemMeta()) {
+                            applyEffectsToEntity(player, helmet.getItemMeta(), timer, false);
                         }
                     }
 
-                    if (new Random().nextDouble() < ((double) 1 / 24000)) {
-                        double delta = 0.01 + new Random().nextDouble() * 0.29;
-                        String name = player.getName();
-                        addChanceDaily(name, delta);
+                    // Обработка эффектов на стойках брони
+                    for (Entity nearby : player.getNearbyEntities(40, 20, 40)) {
+                        if (!(nearby instanceof ArmorStand)) continue;
+                        ArmorStand stand = (ArmorStand) nearby;
+                        if (processedStands.contains(stand)) continue;
+                        processedStands.add(stand);
+
+                        ItemStack standHelmet = stand.getHelmet();
+                        if (standHelmet != null && standHelmet.hasItemMeta()) {
+                            applyEffectsToEntity(stand, standHelmet.getItemMeta(), timer, false);
+                        }
                     }
                 }
             }
         }.runTaskTimer(this, 0L, 1L);
+    }
+
+    /**
+     * Применяет необычные эффекты к сущности (игроку или стойке брони)
+     * @param entity Сущность, к которой применяются эффекты
+     * @param meta Метаданные предмета (шлема)
+     * @param timer Таймер для анимации эффектов
+     * @param applyAllEffects Если true, применяются все эффекты, иначе только первый найденный
+     */
+    private void applyEffectsToEntity(Entity entity, ItemMeta meta, int timer, boolean applyAllEffects) {
+        if (meta == null) return;
+
+        List<Player> viewers = new ArrayList<>();
+        UnusualityDataManager data = getDataManager();
+
+        // Определяем зрителей в зависимости от типа сущности
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                if (!data.getShowEffectPlayer(viewer.getName().toLowerCase())) continue;
+                if (viewer.equals(player)) {
+                    if (data.getCanSeeMyEffect(player.getName().toLowerCase())) {
+                        viewers.add(viewer);
+                    }
+                } else {
+                    if (data.getShowAllEffects(viewer.getName().toLowerCase())) {
+                        viewers.add(viewer);
+                    }
+                }
+            }
+        } else if (entity instanceof ArmorStand) {
+            ArmorStand stand = (ArmorStand) entity;
+            for (Player viewer : stand.getWorld().getNearbyPlayers(stand.getLocation(), 50)) {
+                if (!data.getShowEffectPlayer(viewer.getName().toLowerCase())) continue;
+                if (!data.getShowAllEffects(viewer.getName().toLowerCase())) continue;
+                viewers.add(viewer);
+            }
+        }
+
+        // Применяем эффекты
+        for (Map.Entry<Enchantment, UnusualEffect> entry : effects.entrySet()) {
+            if (meta.hasEnchant(entry.getKey())) {
+                entry.getValue().apply(entity, timer, viewers);
+                if (!applyAllEffects) {
+                    break; // Прерываем после первого эффекта, если не нужно применять все
+                }
+            }
+        }
     }
 
     private void registerEffects() {
@@ -92,6 +173,7 @@ public final class Unusuality extends JavaPlugin {
         register("galaxy", new galaxy());
         register("restless_souls", new restlessSouls());
         register("astral_step", new astralStep());
+
         register("stormcloud", new stormcloud());
         register("memory_leak", new memoryLeak());
         register("neutron_star", new neutronStar());
@@ -100,12 +182,26 @@ public final class Unusuality extends JavaPlugin {
         register("orbiting_fire", new orbitingFire());
         register("mountain_halo", new mountainHalo());
         register("miami_nights", new miamiNights());
+
+        register("carousel", new carousel());
+        register("tornado", new tornado());
+        register("rejection", new rejection());
+        register("stargazer", new stargazer());
+        register("devil_horns", new devilHorns());
+        register("neon_electricity", new neonElectricity());
+        register("radiation", new radiation());
+        register("blood_pact", new bloodPact());
     }
 
     private void register(String key, UnusualEffect effect) {
-        Enchantment enchant = Enchantment.getByKey(NamespacedKey.fromString("unusuality:" + key));
+        NamespacedKey nsKey = NamespacedKey.fromString("unusuality:" + key);
+        Enchantment enchant = Enchantment.getByKey(nsKey);
         if (enchant != null) {
             effects.put(enchant, effect);
+        } else {
+            getLogger().warning("Failed to register effect '" + key +
+                    "': Enchantment not found. " +
+                    "Make sure it's properly registered in your plugin.");
         }
     }
 
@@ -114,15 +210,50 @@ public final class Unusuality extends JavaPlugin {
             var commandMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
             commandMapField.setAccessible(true);
             CommandMap commandMap = (CommandMap) commandMapField.get(Bukkit.getServer());
-            commandMap.register(getDescription().getName(), command);
+            commandMap.register(getDescription().getName().toLowerCase(), command);
         } catch (Exception e) {
-            getLogger().warning("Failed to register command: " + command.getName());
+            getLogger().warning("Failed to register command: " + command.getName().toLowerCase());
             e.printStackTrace();
         }
     }
 
-    public MainUnusualGUI getMainUnusualGUI() {
-        return mainUnusualGUI;
+    public MainUnusual getMainUnusualGUI() {
+        return mainUnusual;
+    }
+
+    public SeriesManager getSeriesManager() {
+        return seriesManager;
+    }
+
+    public CaseSelection getCaseSelectionGUI() {
+        return caseSelection;
+    }
+
+    public Settings getSettingsGUI() {
+        return settings;
+    }
+
+    public ExchangeGUI getExchangeGUI() {
+        return exchangeGUI;
+    }
+
+    public KeyConverter getKeyConverter() {
+        return keyConverter;
+    }
+
+    public HelmetExtractor getHelmetExtractorGUI() {
+        return helmetExtractor;
+    }
+
+    public UnusualityDataManager getDataManager() {
+        return dataManager;
+    }
+
+    public TestEnchantment getTestEnchantment() {return testEnchantment;}
+
+    // Добавленный метод для совместимости
+    public UnusualityDataManager getPlayerData() {
+        return dataManager;
     }
 
     public List<Enchantment> getUnusualEnchantments() {
@@ -151,27 +282,11 @@ public final class Unusuality extends JavaPlugin {
         return book;
     }
 
-    private File chanceFile;
-    private FileConfiguration chanceConfig;
+    private void addProgressDaily(Player player, double delta) {
+        String playerName = player.getName().toLowerCase();
 
-    public double getChance(String playerName) {
-        return chanceConfig.getDouble("players." + playerName, 0.0);
-    }
-
-    public void setChance(String playerName, double value) {
-        chanceConfig.set("players." + playerName, value);
-        saveChances();
-    }
-
-    public void addChance(String playerName, double delta) {
-        setChance(playerName, getChance(playerName) + delta);
-    }
-
-    private void addChanceDaily(String playerName, double delta) {
-        String ip = playerIPs.get(playerName);
-        if (ip == null) return;
-
-        if (ipUsedToday.contains(ip)) return; // уже кто-то с этого IP получил прирост
+        String ip = playerIPs.getOrDefault(playerName, "");
+        if (ip.isEmpty() || ipUsedToday.contains(ip)) return;
 
         double gainedToday = todayGain.getOrDefault(playerName, 0.0);
         if (gainedToday >= DAILY_CHANCE_LIMIT) return;
@@ -179,49 +294,25 @@ public final class Unusuality extends JavaPlugin {
         double allowed = Math.min(delta, DAILY_CHANCE_LIMIT - gainedToday);
         if (allowed <= 0) return;
 
-        setChance(playerName, getChance(playerName) + allowed);
+        double newProgress = dataManager.getProgress(playerName) + allowed;
+        int keys = dataManager.getKeys(playerName);
+
+        while (newProgress >= 1.0) {
+            newProgress -= 1.0;
+            keys++;
+        }
+
+        dataManager.setKeys(playerName, keys);
+        dataManager.setProgress(playerName, newProgress);
         todayGain.put(playerName, gainedToday + allowed);
-        ipUsedToday.add(ip); // теперь этот IP считается использованным
-    }
-
-    public void removeChance(String playerName, double delta) {
-        setChance(playerName, getChance(playerName) - delta);
-    }
-
-    private void loadChances() {
-        chanceFile = new File(getDataFolder(), "unusualchance.yml");
-        if (!chanceFile.exists()) {
-            saveResource("unusualchance.yml", false);
-        }
-        chanceConfig = YamlConfiguration.loadConfiguration(chanceFile);
-    }
-
-    public Map<String, Double> getAllChances() {
-        Map<String, Double> result = new HashMap<>();
-        ConfigurationSection section = chanceConfig.getConfigurationSection("players");
-
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                result.put(key, chanceConfig.getDouble("players." + key));
-            }
-        }
-
-        return result;
-    }
-
-    private void saveChances() {
-        try {
-            chanceConfig.save(chanceFile);
-        } catch (IOException e) {
-            getLogger().warning("Failed to save unusualchance.yml");
-            e.printStackTrace();
-        }
+        ipUsedToday.add(ip);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        String ip = event.getPlayer().getAddress().getAddress().getHostAddress();
-        playerIPs.put(event.getPlayer().getName(), ip);
+        Player player = event.getPlayer();
+        String ip = player.getAddress().getAddress().getHostAddress();
+        playerIPs.put(player.getName().toLowerCase(), ip);
     }
 
     @Override

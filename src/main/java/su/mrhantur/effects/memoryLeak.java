@@ -4,11 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.util.Vector;
 import su.mrhantur.UnusualEffect;
 
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,14 +23,14 @@ public class memoryLeak implements UnusualEffect {
     private final Set<TextDisplay> displays = ConcurrentHashMap.newKeySet();
 
     @Override
-    public void apply(Player player, int timer) {
-        if (timer % 30 != 0 || random.nextDouble() > 0.6) return;
+    public void apply(Entity player, int timer, List<Player> viewers) {
+        if (timer % 30 != 0 && random.nextDouble() > 0.6) return;
 
         Location base = player.getLocation();
         Location loc = base.clone().add(
-                (random.nextDouble() - 0.5) * 0.3, // x drift
-                2.2 + random.nextDouble() * 0.3,   // y above head
-                (random.nextDouble() - 0.5) * 0.3  // z drift
+                (random.nextDouble() - 0.5) * 0.2, // x drift
+                2.2 + random.nextDouble() * 0.2,   // y above head
+                (random.nextDouble() - 0.5) * 0.2  // z drift
         );
 
         String text = memoryChunks[random.nextInt(memoryChunks.length)];
