@@ -26,6 +26,7 @@ public class ExchangeOffer {
         MATERIAL_NAMES.put(Material.COPPER_INGOT, "Медный слиток");
         MATERIAL_NAMES.put(Material.RAW_GOLD, "Сырое золото");
         MATERIAL_NAMES.put(Material.RAW_IRON, "Сырое железо");
+        MATERIAL_NAMES.put(Material.ELYTRA, "Элитры");
     }
 
     private final Material material;
