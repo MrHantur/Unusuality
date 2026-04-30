@@ -1,10 +1,10 @@
-name: Unusuality
-version: 2.0
-api-version: 1.21
+name: "Unusuality"
+version: "2.0"
+api-version: "26.1"
 bootstrapper: su.mrhantur.UnusualityBootstrapper
 main: su.mrhantur.Unusuality
-description: Unusuality plugin with bootstrapper
-author: MrHantur
+description: "Unusuality plugin with bootstrapper"
+author: "MrHantur"
 permissions:
   unusuality.chance:
     description: "/uc"

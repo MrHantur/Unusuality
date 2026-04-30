@@ -2,7 +2,6 @@ package su.mrhantur;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import su.mrhantur.Unusuality;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +24,7 @@ public class UnusualityDataManager {
                 plugin.getDataFolder().mkdirs();
                 dataFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().warning("Could not create unusualData.yml");
+                plugin.getLogger().warning("Не удалось создать unusualData.yml");
                 e.printStackTrace();
             }
         }
@@ -37,17 +36,19 @@ public class UnusualityDataManager {
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("Could not save unusualData.yml");
+            plugin.getLogger().warning("Не удалось сохранить unusualData.yml");
             e.printStackTrace();
         }
     }
+
+    // ── Геттеры ──────────────────────────────────────────────────────────────
 
     public int getKeys(String player) {
         return dataConfig.getInt("players." + player + ".keys", 0);
     }
 
     public double getProgress(String player) {
-        return Math.round(dataConfig.getDouble("players." + player + ".progress", 0.0) * 100.0) / 100.0;
+        return round2(dataConfig.getDouble("players." + player + ".progress", 0.0));
     }
 
     public boolean getShowEffectPlayer(String player) {
@@ -62,13 +63,15 @@ public class UnusualityDataManager {
         return dataConfig.getBoolean("players." + player + ".canSeeMyEffect", true);
     }
 
+    // ── Сеттеры ──────────────────────────────────────────────────────────────
+
     public void setKeys(String player, int keys) {
         dataConfig.set("players." + player + ".keys", keys);
         save();
     }
 
     public void setProgress(String player, double progress) {
-        dataConfig.set("players." + player + ".progress", Math.round(progress * 100.0) / 100.0);
+        dataConfig.set("players." + player + ".progress", round2(progress));
         save();
     }
 
@@ -87,65 +90,71 @@ public class UnusualityDataManager {
         save();
     }
 
+    // ── Составные операции ───────────────────────────────────────────────────
+
     public void addKeys(String player, int delta) {
-        int keys = getKeys(player);
-        setKeys(player, keys + delta);
+        setKeys(player, getKeys(player) + delta);
     }
 
     public void removeKeys(String player, int delta) {
-        int keys = getKeys(player);
-        int newKeys = Math.max(0, keys - delta);
-        setKeys(player, newKeys);
+        setKeys(player, Math.max(0, getKeys(player) - delta));
     }
+
+    public void addProgress(String player, double delta) {
+        double progress = getProgress(player);
+        int keys = getKeys(player);
+
+        progress += delta;
+        if (progress >= 1.0) {
+            int steps = (int)progress;   // or (int)floor(progress) for safety
+            keys += steps;
+            progress -= steps;
+        }
+
+        setKeys(player, keys);
+        setProgress(player, progress);
+    }
+
+    public void removeProgress(String player, double delta) {
+        double progress = getProgress(player);
+        int keys = getKeys(player);
+
+        progress -= delta;
+        while (progress < 0.0 && keys > 0) {
+            keys--;
+            progress += 1.0;
+        }
+
+        setKeys(player, Math.max(0, keys));
+        setProgress(player, Math.max(0.0, progress));
+    }
+
+    // ── Массовое чтение ─────────────────────────────────────────────────────
 
     public Map<String, Integer> getAllKeys() {
         if (!dataConfig.isConfigurationSection("players")) return Collections.emptyMap();
 
-        Map<String, Integer> keysMap = new HashMap<>();
+        Map<String, Integer> result = new HashMap<>();
         for (String player : dataConfig.getConfigurationSection("players").getKeys(false)) {
-            keysMap.put(player, getKeys(player));
+            result.put(player, getKeys(player));
         }
-        return keysMap;
+        return result;
     }
 
     public Map<String, Double> getAllProgress() {
         if (!dataConfig.isConfigurationSection("players")) return Collections.emptyMap();
 
-        Map<String, Double> progressMap = new HashMap<>();
+        Map<String, Double> result = new HashMap<>();
         for (String player : dataConfig.getConfigurationSection("players").getKeys(false)) {
-            progressMap.put(player, getProgress(player));
+            result.put(player, getProgress(player));
         }
-        return progressMap;
+        return result;
     }
 
-    public void addProgress(String player, double delta) {
-        double currentProgress = getProgress(player);
-        int keys = getKeys(player);
+    // ── Вспомогательные методы ───────────────────────────────────────────────
 
-        double newProgress = currentProgress + delta;
-
-        while (newProgress >= 1.0) {
-            newProgress -= 1.0;
-            keys++;
-        }
-
-        setKeys(player, keys);
-        setProgress(player, newProgress);
-    }
-
-    public void removeProgress(String player, double delta) {
-        double currentProgress = getProgress(player);
-        int keys = getKeys(player);
-
-        double newProgress = currentProgress - delta;
-
-        while (newProgress < 0.0 && keys > 0) {
-            keys--;
-            newProgress += 1.0;
-        }
-
-        newProgress = Math.max(0.0, newProgress);
-        setKeys(player, Math.max(0, keys));
-        setProgress(player, newProgress);
+    // Округляет значение до 2 десятичных знаков
+    private static double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

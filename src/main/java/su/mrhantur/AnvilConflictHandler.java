@@ -1,6 +1,5 @@
 package su.mrhantur;
 
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -21,15 +20,10 @@ public class AnvilConflictHandler implements Listener {
         ItemStack left = inventory.getItem(0);
         ItemStack right = inventory.getItem(1);
 
-        if (left == null || right == null) {
-            return;
-        }
+        if (left == null || right == null) return;
 
-        boolean leftHasUnusual = hasUnusual(left);
-        boolean rightHasUnusual = hasUnusual(right);
-
-        if (leftHasUnusual && rightHasUnusual) {
-            event.setResult(null); // Удаляем результат
+        if (hasUnusual(left) && hasUnusual(right)) {
+            event.setResult(null);
         }
     }
 
@@ -38,23 +32,16 @@ public class AnvilConflictHandler implements Listener {
 
         ItemMeta meta = item.getItemMeta();
 
-        Map<Enchantment, Integer> enchants;
+        Map<Enchantment, Integer> enchants = (meta instanceof EnchantmentStorageMeta bookMeta)
+                ? bookMeta.getStoredEnchants()
+                : meta.getEnchants();
 
-        if (meta instanceof EnchantmentStorageMeta bookMeta) {
-            enchants = bookMeta.getStoredEnchants();
-        } else {
-            enchants = meta.getEnchants();
-        }
-
-        for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
-            Enchantment ench = entry.getKey();
-            NamespacedKey key = ench.getKey();
-            if (key.getNamespace().equalsIgnoreCase("unusuality")) {
+        for (Enchantment ench : enchants.keySet()) {
+            if (ench.getKey().getNamespace().equalsIgnoreCase("unusuality")) {
                 return true;
             }
         }
 
         return false;
     }
-
 }
