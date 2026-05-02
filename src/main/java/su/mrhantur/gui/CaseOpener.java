@@ -249,7 +249,7 @@ public class CaseOpener {
     }
 
     private ItemStack createIndicator(String symbol) {
-        ItemStack item = new ItemStack(Material.CHAIN);
+        ItemStack item = new ItemStack(Material.IRON_CHAIN);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(symbol);
         item.setItemMeta(meta);

@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class AnvilConflictHandler implements Listener {
 
+    private static final String TARGET_NAMESPACE = "unusuality";
+
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent event) {
         AnvilInventory inventory = event.getInventory();
@@ -31,17 +33,16 @@ public class AnvilConflictHandler implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
 
         ItemMeta meta = item.getItemMeta();
-
         Map<Enchantment, Integer> enchants = (meta instanceof EnchantmentStorageMeta bookMeta)
                 ? bookMeta.getStoredEnchants()
                 : meta.getEnchants();
 
         for (Enchantment ench : enchants.keySet()) {
-            if (ench.getKey().getNamespace().equalsIgnoreCase("unusuality")) {
+            // Проверка неймспейса
+            if (ench.getKey().getNamespace().equals(TARGET_NAMESPACE)) {
                 return true;
             }
         }
-
         return false;
     }
 }

@@ -76,6 +76,12 @@ public class TestEnchantment implements Listener {
         if (clicked == null) return;
 
         if (clicked.getType() == Material.ENCHANTED_BOOK) {
+            if (player.getInventory().getHelmet().hasItemMeta()) {
+                player.sendMessage("§cНа вас уже есть шлем!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                return;
+            }
+
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) clicked.getItemMeta();
             if (meta.getStoredEnchants().isEmpty()) return;
 

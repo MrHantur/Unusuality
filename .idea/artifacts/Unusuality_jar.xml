@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Unusuality:jar">
+    <output-path>E:/MCPaper/plugins</output-path>
+    <root id="archive" name="Unusuality.jar">
+      <element id="module-output" name="Unusuality.main" />
+    </root>
+  </artifact>
+</component>

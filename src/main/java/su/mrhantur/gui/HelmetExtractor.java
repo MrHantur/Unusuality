@@ -37,7 +37,8 @@ public class HelmetExtractor implements Listener {
             Material.DIAMOND_HELMET,
             Material.NETHERITE_HELMET,
             Material.TURTLE_HELMET,
-            Material.CARVED_PUMPKIN
+            Material.CARVED_PUMPKIN,
+            Material.COPPER_HELMET
     );
 
     public HelmetExtractor(Unusuality plugin) {
@@ -129,7 +130,7 @@ public class HelmetExtractor implements Listener {
             }
 
             // Если игрок кликает с курсором (пытается поместить предмет)
-            if (cursor != null && cursor.getType() != Material.AIR) {
+            if (cursor.getType() != Material.AIR) {
                 // Проверяем, что это шлем
                 if (!HELMET_TYPES.contains(cursor.getType())) {
                     player.sendMessage(ChatColor.RED + "Вы можете поместить только шлем!");
@@ -149,7 +150,7 @@ public class HelmetExtractor implements Listener {
                 }
 
                 if (!hasUnusual) {
-                    player.sendMessage(ChatColor.RED + "Этот шлем не имеет необычного зачарования!");
+                    player.sendMessage("§cЭтот шлем не имеет необычного зачарования!");
                     return;
                 }
 
@@ -177,7 +178,7 @@ public class HelmetExtractor implements Listener {
         else if (slot == EXTRACT_BUTTON) {
             ItemStack helmet = inv.getItem(HELMET_SLOT);
             if (helmet == null || !HELMET_TYPES.contains(helmet.getType())) {
-                player.sendMessage(ChatColor.RED + "Сначала поместите шлем!");
+                player.sendMessage("§cСначала поместите шлем!");
                 return;
             }
 
@@ -194,13 +195,13 @@ public class HelmetExtractor implements Listener {
             }
 
             if (unusualEnchant == null) {
-                player.sendMessage(ChatColor.RED + "Этот шлем не имеет необычного зачарования!");
+                player.sendMessage("§cЭтот шлем не имеет необычного зачарования!");
                 return;
             }
 
             // Проверяем уровень игрока
             if (player.getLevel() < 50) {
-                player.sendMessage(ChatColor.RED + "У вас недостаточно опыта! Нужно 50 уровней");
+                player.sendMessage("§cУ вас недостаточно опыта! Нужно 50 уровней");
                 return;
             }
 
@@ -214,17 +215,15 @@ public class HelmetExtractor implements Listener {
             book.setItemMeta(bookMeta);
 
             // Удаляем необычное зачарование со шлема
-            if (helmetMeta != null) {
-                helmetMeta.removeEnchant(unusualEnchant);
-                helmet.setItemMeta(helmetMeta);
-            }
+            helmetMeta.removeEnchant(unusualEnchant);
+            helmet.setItemMeta(helmetMeta);
 
             // Возвращаем шлем без зачарования и выдаем книгу
             player.getInventory().addItem(helmet, book);
             inv.setItem(HELMET_SLOT, createPlaceholder());
 
             // Эффекты и сообщение
-            player.sendMessage(ChatColor.GREEN + "Зачарование успешно извлечено! Шлем возвращен без зачарования");
+            player.sendMessage("§aЗачарование успешно извлечено! Шлем возвращен без зачарования");
             player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.0f);
         }
     }
