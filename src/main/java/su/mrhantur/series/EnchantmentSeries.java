@@ -84,7 +84,6 @@ public class EnchantmentSeries {
         lore.add("");
         lore.add("§7Список зачарований:");
 
-        // Получаем ручные названия из SeriesManager
         List<String> names = plugin.getSeriesManager().getEnchantmentNames(id);
         for (String name : names) {
             lore.add("§7- " + name);

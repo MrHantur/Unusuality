@@ -22,8 +22,8 @@ import java.util.*;
 public class TestEnchantment implements Listener {
     private final Unusuality plugin;
     private final Map<UUID, BukkitTask> activeTasks = new HashMap<>();
-    private final Map<String, Enchantment> enchantmentByKey = new HashMap<>();
-    private final Map<Enchantment, String> enchantmentToSeries = new HashMap<>();
+
+    private static final List<String> SERIES_ORDER = List.of("first", "second", "third", "fourth");
 
     public TestEnchantment(Unusuality plugin) {
         this.plugin = plugin;
@@ -34,33 +34,54 @@ public class TestEnchantment implements Listener {
         SeriesManager seriesManager = plugin.getSeriesManager();
         List<EnchantmentSeries> allSeries = new ArrayList<>(seriesManager.getAllSeries());
 
-        // Сортируем серии по ID
-        allSeries.sort(Comparator.comparing(EnchantmentSeries::getId));
+        // Сортировка по заранее заданному порядку
+        allSeries.sort(Comparator.comparingInt(series -> {
+            int index = SERIES_ORDER.indexOf(series.getId());
+            return index == -1 ? Integer.MAX_VALUE : index;
+        }));
 
-        // Рассчитываем размер инвентаря
-        int size = 27;
+        // Считаем общее количество зачарований
+        int enchantCount = 0;
+        for (EnchantmentSeries series : allSeries) {
+            enchantCount += series.getEnchantments().size();
+        }
+
+        // Вычисляем размер инвентаря (кратно 9, макс. 54)
+        int neededSlots = enchantCount + 1; // +1 для кнопки "Назад"
+        int size;
+        if (neededSlots <= 27) {
+            size = 27;
+        } else {
+            size = Math.min(54, ((neededSlots - 1) / 9 + 1) * 9);
+            if (neededSlots > 54) {
+                plugin.getLogger().warning("Слишком много зачарований! Показаны первые " + (size - 1) + ".");
+            }
+        }
+
         Inventory inv = Bukkit.createInventory(null, size, "§bТест зачарований");
 
-        // Заполняем фон
+        // Фон
         ItemStack glass = createGlassPane();
         for (int i = 0; i < size; i++) {
             inv.setItem(i, glass);
         }
 
-        // Добавляем элементы
+        // Размещаем зачарования
         int slot = 0;
+        int lastItemSlot = size - 1; // слот для кнопки "Назад"
+        outer:
         for (EnchantmentSeries series : allSeries) {
-            // Добавляем зачарования серии
             for (Enchantment enchant : series.getEnchantments()) {
-                if (enchant != null) {
+                if (enchant != null && slot < lastItemSlot) {
                     inv.setItem(slot++, createEnchantedBook(enchant, series.getDisplayName()));
+                } else if (slot >= lastItemSlot) {
+                    break outer;
                 }
             }
         }
 
         // Кнопка "Назад"
-        ItemStack backButton = createBackButton();
-        inv.setItem(size - 1, backButton);
+        inv.setItem(size - 1, createBackButton());
 
         player.openInventory(inv);
     }
@@ -76,7 +97,8 @@ public class TestEnchantment implements Listener {
         if (clicked == null) return;
 
         if (clicked.getType() == Material.ENCHANTED_BOOK) {
-            if (player.getInventory().getHelmet().hasItemMeta()) {
+            ItemStack helmet = player.getInventory().getHelmet();
+            if (!helmet.isEmpty()) {
                 player.sendMessage("§cНа вас уже есть шлем!");
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
                 return;

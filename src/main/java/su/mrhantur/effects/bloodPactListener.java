@@ -17,7 +17,7 @@ public class bloodPactListener implements Listener {
         // Проверяем, был ли убийца игроком
         if (!(event.getEntity().getKiller() instanceof Player)) return;
 
-        Player killer = (Player) event.getEntity().getKiller();
+        Player killer = event.getEntity().getKiller();
 
         // Проверяем, есть ли на шлеме энчант bloodpact
         ItemStack helmet = killer.getInventory().getHelmet();

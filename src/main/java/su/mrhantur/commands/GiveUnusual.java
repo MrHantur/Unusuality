@@ -16,7 +16,7 @@ public class GiveUnusual extends Command {
     public GiveUnusual(Unusuality plugin) {
         super("giveunusual");
         this.plugin = plugin;
-        setDescription("Gives a book with an Unusual enchantment to a player.");
+        setDescription("Выдаёт книгу с необычным зачарованием.");
         setPermission("unusuality.giveunusual");
         setAliases(List.of("unusualbook"));
     }
@@ -24,49 +24,53 @@ public class GiveUnusual extends Command {
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /giveunusual <player> <effect|random>");
+            sender.sendMessage("§cИспользование: /giveunusual <игрок> <effect|random>");
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player not found.");
+            sender.sendMessage("§cИгрок не найден.");
             return true;
         }
 
         Enchantment chosen;
 
+        // Выбор зачарования: случайное или указанное
         if (args[1].equalsIgnoreCase("random")) {
             chosen = plugin.getRandomUnusualEnchantment();
             if (chosen == null) {
-                sender.sendMessage(ChatColor.RED + "No unusual enchantments available.");
+                sender.sendMessage("§cНет доступных необычных зачарований.");
                 return true;
             }
         } else {
             NamespacedKey key = NamespacedKey.fromString("unusuality:" + args[1].toLowerCase());
             if (key == null) {
-                sender.sendMessage(ChatColor.RED + "Invalid enchantment key.");
+                sender.sendMessage("§cНеверный ключ зачарования.");
                 return true;
             }
 
             Enchantment enchant = Enchantment.getByKey(key);
             if (enchant == null || !plugin.isUnusualEnchantment(enchant)) {
-                sender.sendMessage(ChatColor.RED + "Unknown or unsupported enchantment: " + args[1]);
+                sender.sendMessage("§cНеизвестное или неподдерживаемое зачарование: " + args[1]);
                 return true;
             }
 
             chosen = enchant;
         }
 
+        // Создаём и выдаём книгу
         ItemStack book = plugin.createUnusualBook(chosen);
         target.getInventory().addItem(book);
 
-        target.sendMessage(ChatColor.LIGHT_PURPLE + "Вы получили зачарование необычного типа!");
-
-        sender.sendMessage(ChatColor.GREEN + "Book with " + chosen.getKey().getKey() + " sent to " + target.getName() + "!");
+        // Показываем название зачарования
+        String displayName = plugin.getEnchantmentDisplayName(chosen);
+        target.sendMessage("§5Вы получили книгу с необычным зачарованием: " + displayName);
+        sender.sendMessage("§aКнига с " + displayName + "§a выдана игроку §5" + target.getName());
         return true;
     }
 
+    // Автодополнение аргументов
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) {
         if (args.length == 1) {

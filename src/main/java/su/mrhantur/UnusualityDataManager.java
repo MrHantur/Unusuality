@@ -63,6 +63,14 @@ public class UnusualityDataManager {
         return dataConfig.getBoolean("players." + player + ".canSeeMyEffect", true);
     }
 
+    public boolean getOfferAnotherCase(String player) {
+        return dataConfig.getBoolean("players." + player + ".offerAnotherCase", false);
+    }
+
+    public boolean getAnnounceJackpot(String player) {
+        return dataConfig.getBoolean("players." + player + ".announceJackpot", false);
+    }
+
     // ── Сеттеры ──────────────────────────────────────────────────────────────
 
     public void setKeys(String player, int keys) {
@@ -90,6 +98,16 @@ public class UnusualityDataManager {
         save();
     }
 
+    public void setOfferAnotherCase(String player, boolean value) {
+        dataConfig.set("players." + player + ".offerAnotherCase", value);
+        save();
+    }
+
+    public void setAnnounceJackpot(String player, boolean value) {
+        dataConfig.set("players." + player + ".announceJackpot", value);
+        save();
+    }
+
     // ── Составные операции ───────────────────────────────────────────────────
 
     public void addKeys(String player, int delta) {
@@ -106,7 +124,7 @@ public class UnusualityDataManager {
 
         progress += delta;
         if (progress >= 1.0) {
-            int steps = (int)progress;   // or (int)floor(progress) for safety
+            int steps = (int)progress;
             keys += steps;
             progress -= steps;
         }

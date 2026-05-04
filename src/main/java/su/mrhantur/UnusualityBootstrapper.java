@@ -51,12 +51,14 @@ public final class UnusualityBootstrapper implements PluginBootstrap {
                     registerEnchantment(event, "blood_pact", "§6♦ Кровавый договор");
 
                     // Серия #4
-                    registerEnchantment(event, "sputnik", "§1♦ Спутник");
-                    registerEnchantment(event, "own_grave", "§1♦ Своя могила");
-                    registerEnchantment(event, "silent_nights", "§1♦ Тихие ночи");
-                    registerEnchantment(event, "rockets", "§1♦ Ракеты");
-                    registerEnchantment(event, "sakura_trails", "§1♦ След сакуры");
-                    registerEnchantment(event, "no_sound_no_memory", "§1♦ NO SOUND, NO MEMORY");
+                    registerEnchantment(event, "sputnik", "§d♦ Спутник");
+                    registerEnchantment(event, "own_grave", "§d♦ Своя могила");
+                    registerEnchantment(event, "silent_nights", "§d♦ Тихие ночи");
+                    registerEnchantment(event, "rockets", "§d♦ Ракеты");
+                    registerEnchantment(event, "sakura_trails", "§d♦ След сакуры");
+                    registerEnchantment(event, "no_sound_no_memory", "§d♦ NO SOUND, NO MEMORY");
+                    registerEnchantment(event, "water_scarf", "§d♦ Водный шарф");
+                    registerEnchantment(event, "rainbow_blood", "§d♦ Радужная кровь");
                 })
         );
     }

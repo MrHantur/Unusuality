@@ -76,6 +76,7 @@ public final class Unusuality extends JavaPlugin implements Listener {
     private final Map<String, Double> todayGain = new HashMap<>();
     private final Map<String, String> playerIPs = new HashMap<>();
     private final Set<String> ipUsedToday = new HashSet<>();
+    private final Map<Enchantment, String> enchantmentDisplayNames = new HashMap<>();
 
     private final Random random = new Random();
 
@@ -299,47 +300,54 @@ public final class Unusuality extends JavaPlugin implements Listener {
     // ──────────────────────────────────────────────
 
     private void registerEffects() {
-        register("fireflies",            new fireflies());
-        register("confetti",             new confetti());
-        register("green_energy",         new greenEnergy());
-        register("galaxy",               new galaxy());
-        register("restless_souls",       new restlessSouls());
-        register("astral_step",          new astralStep());
+        // Серия #1
+        register("fireflies",            new fireflies(),            "§3♦ Светлячки");
+        register("confetti",             new confetti(),             "§3♦ Конфетти");
+        register("green_energy",         new greenEnergy(),          "§3♦ Зелёная энергия");
+        register("galaxy",               new galaxy(),               "§3♦ Галактика");
+        register("restless_souls",       new restlessSouls(),        "§3♦ Беспокойные души");
+        register("astral_step",          new astralStep(),           "§3♦ Астральный шаг");
 
-        register("stormcloud",           new stormcloud());
-        register("memory_leak",          new memoryLeak());
-        register("neutron_star",         new neutronStar());
-        register("flaming_lantern",      new flamingLantern());
-        register("bubbling",             new bubbling());
-        register("orbiting_fire",        new orbitingFire());
-        register("mountain_halo",        new mountainHalo());
-        register("miami_nights",         new miamiNights());
+        // Серия #2
+        register("stormcloud",           new stormcloud(),           "§5♦ Штормовое облако");
+        register("memory_leak",          new memoryLeak(),           "§5♦ Утечка памяти");
+        register("neutron_star",         new neutronStar(),          "§5♦ Нейтронная звезда");
+        register("flaming_lantern",      new flamingLantern(),       "§5♦ Пылающая лампа");
+        register("bubbling",             new bubbling(),             "§5♦ Пузырьки");
+        register("orbiting_fire",        new orbitingFire(),         "§5♦ Орбитальный огонёк");
+        register("mountain_halo",        new mountainHalo(),         "§5♦ Горный нимб");
+        register("miami_nights",         new miamiNights(),          "§5♦ Майами");
 
-        register("carousel",             new carousel());
-        register("tornado",              new tornado());
-        register("rejection",            new rejection());
-        register("stargazer",            new stargazer());
-        register("devil_horns",          new devilHorns());
-        register("neon_electricity",     new neonElectricity());
-        register("radiation",            new radiation());
-        register("blood_pact",           new bloodPact());
+        // Серия #3
+        register("carousel",             new carousel(),             "§6♦ Карусель");
+        register("tornado",              new tornado(),              "§6♦ Смерч");
+        register("rejection",            new rejection(),            "§6♦ Отторжение");
+        register("stargazer",            new stargazer(),            "§6♦ Звездочёт");
+        register("devil_horns",          new devilHorns(),           "§6♦ Дьявольские рога");
+        register("neon_electricity",     new neonElectricity(),      "§6♦ Неоновое электричество");
+        register("radiation",            new radiation(),            "§6♦ Радиация");
+        register("blood_pact",           new bloodPact(),            "§6♦ Кровавый договор");
 
-        register("sputnik",              new sputnik());
-        register("own_grave",            new ownGrave());
-        register("silent_nights",        new silentNights());
-        register("rockets",              new rockets());
-        register("sakura_trails",        new sakuraTrails());
-        register("no_sound_no_memory",   new noSoundNoMemory());
+        // Серия #4
+        register("sputnik",              new sputnik(),              "§d♦ Спутник");
+        register("own_grave",            new ownGrave(),             "§d♦ Своя могила");
+        register("silent_nights",        new silentNights(),         "§d♦ Тихие ночи");
+        register("rockets",              new rockets(),              "§d♦ Ракеты");
+        register("sakura_trails",        new sakuraTrails(),         "§d♦ След сакуры");
+        register("no_sound_no_memory",   new noSoundNoMemory(),      "§d♦ NO SOUND, NO MEMORY");
+        register("water_scarf",          new waterScarf(),           "§d♦ Водный шарф");
+        register("rainbow_blood",        new rainbowBlood(),         "§d♦ Радужная кровь");
     }
 
-    private void register(String key, UnusualEffect effect) {
+    // Перегруженный метод регистрации
+    private void register(String key, UnusualEffect effect, String displayName) {
         NamespacedKey nsKey = NamespacedKey.fromString("unusuality:" + key);
         Enchantment enchant = Enchantment.getByKey(nsKey);
         if (enchant != null) {
             effects.put(enchant, effect);
+            enchantmentDisplayNames.put(enchant, displayName);
         } else {
-            getLogger().warning("Failed to register effect '" + key +
-                    "': Enchantment not found. Make sure it's registered in your plugin.");
+            getLogger().warning("Failed to register effect '" + key + "': Enchantment not found.");
         }
     }
 
@@ -354,6 +362,8 @@ public final class Unusuality extends JavaPlugin implements Listener {
         registerCommand(new UnusualChance(this, "гс"));
         registerCommand(new UnusualChance(this, "uk"));
         registerCommand(new UnusualChance(this, "гл"));
+        registerCommand(new UnusualChance(this, "unusuality"));
+        registerCommand(new UnusualChance(this, "unusualkeys"));
     }
 
     private void registerCommand(Command command) {
@@ -394,9 +404,10 @@ public final class Unusuality extends JavaPlugin implements Listener {
     public UnusualityDataManager getDataManager()    { return dataManager; }
     public TestEnchantment getTestEnchantment()      { return testEnchantment; }
 
-    /** @deprecated используй {@link #getDataManager()} */
-    @Deprecated
-    public UnusualityDataManager getPlayerData()     { return dataManager; }
+    public String getEnchantmentDisplayName(Enchantment enchantment) {
+        return enchantmentDisplayNames.getOrDefault(enchantment,
+                enchantment.getKey().getKey().replace('_', ' '));
+    }
 
     public List<Enchantment> getUnusualEnchantments() {
         return new ArrayList<>(effects.keySet());

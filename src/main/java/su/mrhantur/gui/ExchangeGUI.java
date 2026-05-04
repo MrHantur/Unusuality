@@ -32,11 +32,7 @@ public class ExchangeGUI implements Listener {
 
     private void loadOffers() {
         // Легко расширяемый список предложений
-        offers.add(new ExchangeOffer(Material.DIAMOND, 32, 1));
-        offers.add(new ExchangeOffer(Material.NETHERITE_INGOT, 1, 1));
-        offers.add(new ExchangeOffer(Material.EMERALD, 64, 1));
-        offers.add(new ExchangeOffer(Material.NETHER_STAR, 1, 3));
-        offers.add(new ExchangeOffer(Material.ELYTRA, 1, 3));
+        offers.add(new ExchangeOffer(Material.BEDROCK, 1, 11));
         // Добавляйте новые предложения здесь
     }
 
@@ -109,7 +105,7 @@ public class ExchangeGUI implements Listener {
         // Проверяем наличие предметов
         if (!player.getInventory().containsAtLeast(new ItemStack(offer.getMaterial()), offer.getAmount())) {
             String materialName = offer.getMaterialName(offer.getMaterial()).toLowerCase();
-            player.sendMessage(ChatColor.RED + "У вас недостаточно " + materialName + "!");
+            player.sendMessage("§cУ вас недостаточно " + materialName + "!");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }

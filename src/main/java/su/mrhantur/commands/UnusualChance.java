@@ -1,7 +1,6 @@
 package su.mrhantur.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import su.mrhantur.Unusuality;
@@ -9,6 +8,10 @@ import su.mrhantur.UnusualityDataManager;
 
 import java.util.*;
 
+/**
+ * Команда /unusualchance (и алиасы /uc, /uk и т.д.)
+ * Управление шансами выпадения, видимостью эффектов и просмотр статистики.
+ */
 public class UnusualChance extends Command {
 
     private final Unusuality plugin;
@@ -21,24 +24,23 @@ public class UnusualChance extends Command {
     public UnusualChance(Unusuality plugin, String name) {
         super(name);
         this.plugin = plugin;
-        this.data = plugin.getPlayerData();
-        setDescription("Manage player's unusual chance and effect visibility");
+        this.data = plugin.getDataManager(); // исправлено с getPlayerData()
+        setDescription("Управление шансами игрока и видимостью эффектов");
         setPermission("unusuality.chance");
     }
 
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
-        // GUI
+        // Если нет аргументов и отправитель — игрок → открываем GUI
         if (args.length == 0 && sender instanceof Player player) {
             plugin.getMainUnusualGUI().open(player);
             return true;
         }
 
-        // Настройки
+        // Настройки видимости эффектов (только для игроков)
         if (args.length >= 1 && sender instanceof Player player) {
             String subCommand = args[0].toLowerCase();
 
-            // Команды для управления видимостью эффектов
             if (subCommand.equals("seemine")) {
                 return handleToggleCommand(player, "showEffectPlayer", args, "Показ ваших эффектов");
             }
@@ -49,27 +51,28 @@ public class UnusualChance extends Command {
                 return handleToggleCommand(player, "canSeeMyEffect", args, "Видимость ваших эффектов для других");
             }
         }
+
+        // Информация о текущих настройках игрока
         if (args.length == 1 && args[0].equalsIgnoreCase("info") && sender instanceof Player player) {
-            String playerName = player.getName();
-            sendVisibilityInfo(player, playerName.toLowerCase());
+            sendVisibilityInfo(player, player.getName().toLowerCase());
             return true;
         }
 
-        // Legacy
+        // Устаревшие команды (gamble / chance)
         if (args.length == 1 && args[0].equalsIgnoreCase("gamble") && sender instanceof Player player) {
-            sender.sendMessage(ChatColor.RED + "Эта функция устарела. Используйте открытие кейса в /uc");
+            sender.sendMessage("§cЭта функция устарела. Используйте открытие кейса в /uc");
             return true;
         } else if (args.length == 1 && args[0].equalsIgnoreCase("chance") && sender instanceof Player player) {
-            sender.sendMessage(ChatColor.RED + "Эта функция устарела. Используйте открытие кейса в /uc");
+            sender.sendMessage("§cЭта функция устарела. Используйте открытие кейса в /uc");
             return true;
         }
 
-        // get all
+        // Просмотр шансов всех игроков (админская команда)
         if (args.length == 2 && args[0].equalsIgnoreCase("get") && args[1].equalsIgnoreCase("all")) {
             Map<String, Integer> allKeys = data.getAllKeys();
             Map<String, Double> allProgress = data.getAllProgress();
 
-            sender.sendMessage(ChatColor.LIGHT_PURPLE + "📊 Шансы всех игроков:");
+            sender.sendMessage("§5📊 Шансы всех игроков:");
 
             allKeys.keySet().stream()
                     .sorted(Comparator.comparingInt((String name) -> allKeys.getOrDefault(name, 0)).reversed())
@@ -77,12 +80,13 @@ public class UnusualChance extends Command {
                         int keys = allKeys.getOrDefault(name, 0);
                         double progress = allProgress.getOrDefault(name, 0.0);
                         double chance = keys * 100.0 + progress * 100.0;
-                        sender.sendMessage(ChatColor.GRAY + "- " + name + ": " + keys + " ключ(ей), прогресс " + String.format(Locale.US, "%.2f", progress) + " (" + String.format(Locale.US, "%.2f", chance) + "%)");
+                        sender.sendMessage("§7- " + name + ": " + keys + " ключ(ей), прогресс " + String.format(Locale.US, "%.2f", progress) + " (" + String.format(Locale.US, "%.2f", chance) + "%)");
                     });
 
             return true;
         }
 
+        // Админские команды: set / add / remove
         if (args.length == 3 && sender.hasPermission("unusuality.chance.admin")) {
             String action = args[0].toLowerCase();
             String target = args[1].toLowerCase();
@@ -91,7 +95,7 @@ public class UnusualChance extends Command {
             try {
                 value = Double.parseDouble(args[2]);
             } catch (NumberFormatException e) {
-                sender.sendMessage(ChatColor.RED + "Invalid number: " + args[2]);
+                sender.sendMessage("§cНеверное число: " + args[2]);
                 return true;
             }
 
@@ -105,84 +109,90 @@ public class UnusualChance extends Command {
                 case "add" -> data.addProgress(target, value / 100.0);
                 case "remove" -> data.removeProgress(target, value / 100.0);
                 default -> {
-                    sender.sendMessage(ChatColor.RED + "Usage: /unusualchance [set|add|remove] <player> <value>");
+                    sender.sendMessage("§cИспользование: /unusualchance [set|add|remove] <игрок> <значение>");
                     return true;
                 }
             }
 
             double chance = data.getKeys(target) * 100.0 + data.getProgress(target) * 100.0;
-            sender.sendMessage(ChatColor.GREEN + "Chance for " + target + " is now " + String.format(Locale.US, "%.2f", chance) + "%");
+            sender.sendMessage("§aШанс для " + target + " теперь " + String.format(Locale.US, "%.2f", chance) + "%");
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /unusualchance OR /unusualchance [set|add|remove|get all] <player> <value>");
+        sender.sendMessage("§cИспользование: /unusualchance ИЛИ /unusualchance [set|add|remove|get all] <игрок> <значение>");
         return true;
     }
 
+    /**
+     * Обрабатывает команды включения/выключения настроек видимости.
+     */
     private boolean handleToggleCommand(Player player, String setting, String[] args, String settingName) {
         if (args.length == 1) {
             // Переключение состояния
             boolean current = getSettingValue(player.getName(), setting);
             setSettingValue(player.getName(), setting, !current);
-            player.sendMessage(ChatColor.GREEN + settingName + " " +
-                    (current ? ChatColor.RED + "выключены" : ChatColor.GREEN + "включены"));
+            player.sendMessage((current ? "§c" : "§a") + settingName + " " +
+                    (current ? "выключены" : "включены"));
             return true;
         }
         else if (args.length == 2) {
-            // Установка конкретного значения
             String value = args[1].toLowerCase();
             if (value.equals("on") || value.equals("вкл")) {
                 setSettingValue(player.getName(), setting, true);
-                player.sendMessage(ChatColor.GREEN + settingName + " включены");
+                player.sendMessage("§a" + settingName + " включены");
                 return true;
             }
             else if (value.equals("off") || value.equals("выкл")) {
                 setSettingValue(player.getName(), setting, false);
-                player.sendMessage(ChatColor.RED + settingName + " выключены");
+                player.sendMessage("§c" + settingName + " выключены");
                 return true;
             }
         }
 
-        player.sendMessage(ChatColor.RED + "Использование: /" + getName() + " " + args[0] + " [on/off]");
+        player.sendMessage("§cИспользование: /" + getName() + " " + args[0] + " [on/off]");
         return true;
     }
 
-    // Новый метод для отправки информации о настройках
+    /**
+     * Отправляет игроку информацию о текущих настройках видимости.
+     */
     private void sendVisibilityInfo(Player player, String playerName) {
-        player.sendMessage(ChatColor.GOLD + "--- Настройки видимости эффектов ---");
-        player.sendMessage(formatSetting("Показ ваших эффектов", data.getShowEffectPlayer(playerName)));
-        player.sendMessage(formatSetting("Показ чужих эффектов", data.getShowAllEffects(playerName)));
-        player.sendMessage(formatSetting("Другие видят ваши эффекты", data.getCanSeeMyEffect(playerName)));
+        player.sendMessage("§6--- Настройки видимости эффектов ---");
+        player.sendMessage(formatSetting("Показ ваших эффектов (seemine)", data.getShowEffectPlayer(playerName)));
+        player.sendMessage(formatSetting("Показ чужих эффектов (seeother)", data.getShowAllEffects(playerName)));
+        player.sendMessage(formatSetting("Другие видят ваши эффекты (showmine)", data.getCanSeeMyEffect(playerName)));
     }
 
     private String formatSetting(String name, boolean value) {
-        return ChatColor.GRAY + "- " + name + ": " +
-                (value ? ChatColor.GREEN + "ВКЛ" : ChatColor.RED + "ВЫКЛ");
+        return "§7- " + name + ": " + (value ? "§aВКЛ" : "§cВЫКЛ");
     }
 
     private boolean getSettingValue(String player, String setting) {
+        String name = player.toLowerCase();
         switch (setting) {
-            case "showEffectPlayer": return data.getShowEffectPlayer(player.toLowerCase());
-            case "showAllEffects": return data.getShowAllEffects(player.toLowerCase());
-            case "canSeeMyEffect": return data.getCanSeeMyEffect(player.toLowerCase());
+            case "showEffectPlayer": return data.getShowEffectPlayer(name);
+            case "showAllEffects": return data.getShowAllEffects(name);
+            case "canSeeMyEffect": return data.getCanSeeMyEffect(name);
             default: return false;
         }
     }
 
     private void setSettingValue(String player, String setting, boolean value) {
+        String name = player.toLowerCase();
         switch (setting) {
             case "showEffectPlayer":
-                data.setShowEffectPlayer(player, value);
+                data.setShowEffectPlayer(name, value);
                 break;
             case "showAllEffects":
-                data.setShowAllEffects(player, value);
+                data.setShowAllEffects(name, value);
                 break;
             case "canSeeMyEffect":
-                data.setCanSeeMyEffect(player, value);
+                data.setCanSeeMyEffect(name, value);
                 break;
         }
     }
 
+    // Автодополнение аргументов
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) {
         if (args.length == 1) {
@@ -193,7 +203,7 @@ public class UnusualChance extends Command {
             }
 
             if (sender instanceof Player) {
-                options.addAll(List.of("gamble", "chance", "seemine", "seeother", "showmine", "info"));
+                options.addAll(List.of("seemine", "seeother", "showmine", "info"));
             }
 
             return options.stream()

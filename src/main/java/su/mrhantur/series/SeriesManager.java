@@ -10,7 +10,7 @@ import java.util.*;
 public class SeriesManager {
     private final Unusuality plugin;
     private final Map<String, EnchantmentSeries> series = new HashMap<>();
-    private final Map<String, List<String>> enchantmentNames = new HashMap<>(); // Новое поле для хранения названий
+    private final Map<String, List<String>> enchantmentNames = new HashMap<>();
 
     public SeriesManager(Unusuality plugin) {
         this.plugin = plugin;
@@ -40,7 +40,7 @@ public class SeriesManager {
                 "Майами"
         ));
 
-        // Серия #3
+        // Серия #3 (порядок соответствует названиям)
         enchantmentNames.put("third", Arrays.asList(
                 "Смерч",
                 "Карусель",
@@ -52,6 +52,17 @@ public class SeriesManager {
                 "Кровавый договор"
         ));
 
+        // Серия #4
+        enchantmentNames.put("fourth", Arrays.asList(
+                "Спутник",
+                "Своя могила",
+                "Тихие ночи",
+                "Ракеты",
+                "След сакуры",
+                "NO SOUND, NO MEMORY",
+                "Водный шарф",
+                "Радужная кровь"
+        ));
 
         // Серия #1
         List<Enchantment> firstSeries = new ArrayList<>(Arrays.asList(
@@ -77,23 +88,34 @@ public class SeriesManager {
         ));
         secondSeries.removeIf(Objects::isNull);
 
-        // Серия #3
+        // Серия #3 (порядок: tornado, carousel, stargazer, ...)
         List<Enchantment> thirdSeries = new ArrayList<>(Arrays.asList(
                 getEnchantmentByKey("tornado"),
+                getEnchantmentByKey("carousel"),
                 getEnchantmentByKey("stargazer"),
                 getEnchantmentByKey("rejection"),
                 getEnchantmentByKey("radiation"),
                 getEnchantmentByKey("neon_electricity"),
                 getEnchantmentByKey("devil_horns"),
-                getEnchantmentByKey("carousel"),
                 getEnchantmentByKey("blood_pact")
         ));
         thirdSeries.removeIf(Objects::isNull);
 
+        // Серия #4
+        List<Enchantment> fourthSeries = new ArrayList<>(Arrays.asList(
+                getEnchantmentByKey("sputnik"),
+                getEnchantmentByKey("own_grave"),
+                getEnchantmentByKey("silent_nights"),
+                getEnchantmentByKey("rockets"),
+                getEnchantmentByKey("sakura_trails"),
+                getEnchantmentByKey("no_sound_no_memory"),
+                getEnchantmentByKey("water_scarf"),
+                getEnchantmentByKey("rainbow_blood")
+        ));
+        fourthSeries.removeIf(Objects::isNull);
 
-        // Серия #1
         registerSeries(new EnchantmentSeries(
-                plugin, // Передаем плагин
+                plugin,
                 "first",
                 "§2Серия #1",
                 "Самые первые зачарования (snapshot 3)",
@@ -103,9 +125,8 @@ public class SeriesManager {
                 20.0
         ));
 
-        // Серия #2
         registerSeries(new EnchantmentSeries(
-                plugin, // Передаем плагин
+                plugin,
                 "second",
                 "§5Серия #2",
                 "Более классические зачарования (version 1.1)",
@@ -115,14 +136,24 @@ public class SeriesManager {
                 20.0
         ));
 
-        // Серия #3
         registerSeries(new EnchantmentSeries(
-                plugin, // Передаем плагин
+                plugin,
                 "third",
                 "§3Серия #3",
                 "Экспериментальные зачарования (version 2.0)",
                 thirdSeries,
                 Material.GOLDEN_APPLE,
+                1,
+                20.0
+        ));
+
+        registerSeries(new EnchantmentSeries(
+                plugin,
+                "fourth",
+                "§dСерия #4",
+                "Зачарования с фишками (version 2.2)",
+                fourthSeries,
+                Material.DRAGON_BREATH,
                 1,
                 20.0
         ));
